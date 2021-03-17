@@ -39,7 +39,18 @@ for (continent in continents_1982) {
 }
 continents_1982_avgpop$avg_pop = as.numeric(continents_1982_avgpop$avg_pop)
 continents_1982_avgpop = continents_1982_avgpop[order(continents_1982_avgpop$avg_pop, decreasing = FALSE), ]
+View(continents_1982_avgpop)
 print(continents_1982_avgpop[1,])
+
+
+# Lowest avg population in 1982 --aggregate
+gapminder_df_1982_1 = gapminder_df[gapminder_df$year == 1982,]
+continents_1982_avgpop_1 = aggregate(pop ~ continent, gapminder_df_1982_1, mean)
+
+continents_1982_avgpop_1$avg_pop = as.numeric(continents_1982_avgpop_1$pop)
+continents_1982_avgpop_1 = continents_1982_avgpop_1[order(continents_1982_avgpop_1$pop, decreasing = FALSE), ]
+View(continents_1982_avgpop_1)
+print(continents_1982_avgpop_1[1,])
 
 #Highest percapita in 1952
 gapminder_df_1952 = gapminder_df[gapminder_df$year == 1952,]
