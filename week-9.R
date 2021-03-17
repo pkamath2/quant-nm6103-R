@@ -64,3 +64,11 @@ chisq.test(tbl)
 library(MASS)
 head(survey)
 View(survey)
+tbl_survey = table(survey$Exer, survey$Smoke)
+print(tbl_survey)
+chisq.test(tbl_survey)
+
+
+tbl_survey = table(survey$Smoke, survey$Exer)
+print(tbl_survey)
+chisq.test(tbl_survey)
