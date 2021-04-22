@@ -2,6 +2,7 @@ library(stringr)
 library(ggplot2)
 library(dplyr)
 library(sjPlot)
+library(pwr)
 
 #Helper function
 print_summary_stats = function(some_data) {
@@ -15,6 +16,7 @@ print_summary_stats = function(some_data) {
 }
 
 data = read.csv('group-project/group1.csv')
+View(data)
 updated_data = data
 updated_data$emotion_with_affinity = '' #Initialize
 
@@ -56,7 +58,7 @@ human_excitement_treatment_data = human_data[human_data$treatment_type == 3,]
 
 # We dont need this. Kept for posterity. 
 # NOTE: Our data is not normally distributed. 
-# shapiro.test(updated_data$naturalness) - low p-value, hence reject null hypothesis that data is normal?
+# shapiro.test(updated_data$naturalness) #- low p-value, hence reject null hypothesis that data is normal?
 # ks.test(updated_data$naturalness, 'pnorm')??
 
 ##################
@@ -65,21 +67,21 @@ human_excitement_treatment_data = human_data[human_data$treatment_type == 3,]
 
 # For treatment_type = 1
 all_anger_data = updated_data[updated_data$treatment_type == 1,]
-all_anger_plot_data = all_anger_data %>% group_by(emotion_with_affinity, factor(human)) %>% summarize(count=n())
+all_anger_plot_data = all_anger_data %>% group_by(emotion, factor(human)) %>% summarize(count=n())
 print(all_anger_plot_data)
-all_anger_plot = ggplot() + geom_col(data = all_anger_plot_data, aes(x = emotion_with_affinity, y=count, fill = `factor(human)`), position = "dodge2")
+all_anger_plot = ggplot() + geom_col(data = all_anger_plot_data, aes(x = emotion, y=count, fill = `factor(human)`), position = "dodge2")
 all_anger_plot = all_anger_plot + ggtitle('Treatment 1 (Anger)') + theme(plot.title = element_text(hjust = 0.5))
 all_anger_plot = all_anger_plot + labs(x = 'emotion')
-all_anger_plot + scale_fill_discrete(name = element_blank(), labels = c("AI", "human"))
+all_anger_plot + scale_fill_discrete(name = element_blank(), labels = c("AI", "human"))+ theme(plot.title = element_text(hjust = 0.5, size = 25), legend.text  = element_text(size = 25), axis.title  = element_text(size = 25), axis.text  = element_text(size = 20))
 
 # For treatment_type = 2
 all_sadness_data = updated_data[updated_data$treatment_type == 2,]
-all_sadness_plot_data = all_sadness_data %>% group_by(emotion_with_affinity, factor(human)) %>% summarize(count=n())
+all_sadness_plot_data = all_sadness_data %>% group_by(emotion, factor(human)) %>% summarize(count=n())
 print(all_sadness_plot_data)
-all_sadness_plot = ggplot() + geom_col(data = all_sadness_plot_data, aes(x = emotion_with_affinity, y=count, fill = `factor(human)`), position = "dodge2")
+all_sadness_plot = ggplot() + geom_col(data = all_sadness_plot_data, aes(x = emotion, y=count, fill = `factor(human)`), position = "dodge2")
 all_sadness_plot = all_sadness_plot + ggtitle('Treatment 2 (Sadness)') + theme(plot.title = element_text(hjust = 0.5))
 all_sadness_plot = all_sadness_plot + labs(x = 'emotion')
-all_sadness_plot + scale_fill_discrete(name = element_blank(), labels = c("AI", "human"))
+all_sadness_plot + scale_fill_discrete(name = element_blank(), labels = c("AI", "human"))+ theme(plot.title = element_text(hjust = 0.5, size = 25), legend.text  = element_text(size = 25), axis.title  = element_text(size = 25), axis.text  = element_text(size = 20))
 
 # For treatment_type = 3
 all_excitement_data = updated_data[updated_data$treatment_type == 3,]
@@ -88,7 +90,7 @@ print(all_excitement_plot_data)
 all_excitement_plot = ggplot() + geom_col(data = all_excitement_plot_data, aes(x = emotion, y=count, fill = `factor(human)`), position = "dodge2")
 all_excitement_plot = all_excitement_plot + ggtitle('Treatment 3 (Excitement)') + theme(plot.title = element_text(hjust = 0.5))
 all_excitement_plot = all_excitement_plot + labs(x = 'emotion')
-all_excitement_plot + scale_fill_discrete(name = element_blank(), labels = c("AI", "human"))
+all_excitement_plot + scale_fill_discrete(name = element_blank(), labels = c("AI", "human"))+ theme(plot.title = element_text(hjust = 0.5, size = 25), legend.text  = element_text(size = 25), axis.title  = element_text(size = 25), axis.text  = element_text(size = 20))
 
 
 
@@ -114,14 +116,25 @@ lm_sadness_excitement_anger_treatment = lm(updated_data$sadness ~ updated_data$e
 summary(lm_sadness_excitement_anger_treatment)
 plot(updated_data$sadness , updated_data$excitement)
 abline(lm_sadness_excitement_anger_treatment)
+confint(lm_sadness_excitement_anger_treatment)
+
+cor.test(updated_data$anger, updated_data$excitement)
+
+#plot(density(lm_sadness_excitement_anger_treatment$residuals))
+#shapiro.test(lm_sadness_excitement_anger_treatment$residuals)
+#qqnorm(lm_sadness_excitement_anger_treatment$residuals)
+#qqline(lm_sadness_excitement_anger_treatment$residuals)
+#plot(updated_data$sadness, lm_sadness_excitement_anger_treatment$residuals)
 
 lm_anger_excitement_treatment = lm(updated_data$anger ~ updated_data$excitement)
 summary(lm_anger_excitement_treatment)
-plot(updated_data$sadness , updated_data$excitement)
+plot(updated_data$anger , updated_data$excitement)
 abline(lm_anger_excitement_treatment)
-
+confint(lm_anger_excitement_treatment)
 ## Conclusion for convergent validity: Low p-values and negative coefficient indicate the negative correlation.
 # i.e., excitement (positive emotion) reduces as anger or sadness (negative emotions) increases
+
+# Zishan: Add in discussion, correlation between sadness and anger cannot be established using our data. 
 
 #*****************************---------------------------*******************************
 #H2
@@ -134,11 +147,12 @@ anger_treatment_plot_data = anger_treatment_data %>% group_by(anger, factor(huma
 print(anger_treatment_plot_data)
 
 anger_treatment_plot = ggplot() + geom_col(data = anger_treatment_plot_data, aes(x = anger, y=count, fill = `factor(human)`), position = "dodge2")
-anger_treatment_plot = anger_treatment_plot + ggtitle('Treatment 1 (Anger) Scores Historgram') + theme(plot.title = element_text(hjust = 0.5))
-anger_treatment_plot + scale_fill_discrete(name = element_blank(), labels = c("AI", "human"))
+anger_treatment_plot = anger_treatment_plot + ggtitle('Treatment 1 (Anger) Scores Historgram') 
+anger_treatment_plot + scale_fill_discrete(name = element_blank(), labels = c("AI", "human")) + theme(plot.title = element_text(hjust = 0.5, size = 20), legend.text  = element_text(size = 25), axis.title  = element_text(size = 25), axis.text  = element_text(size = 20))
 
 t.test(ai_anger_treatment_data$anger, human_anger_treatment_data$anger) # AI anger mean = 3.48; Human anger mean = 3.38. Almost same.
 
+pwr.t.test(d=0.1, sig.level=.05, power = .95, type = 'two.sample')
 
 ### test for sadness
 print_summary_stats(ai_sadness_treatment_data$sadness)
@@ -148,7 +162,7 @@ sadness_treatment_plot_data = sadness_treatment_data %>% group_by(sadness, facto
 
 sadness_treatment_plot = ggplot() + geom_col(data = sadness_treatment_plot_data, aes(x = sadness, y=count, fill = `factor(human)`), position = "dodge2")
 sadness_treatment_plot = sadness_treatment_plot + ggtitle('Treatment 2 (Sadness) Scores Historgram') + theme(plot.title = element_text(hjust = 0.5))
-sadness_treatment_plot + scale_fill_discrete(name = element_blank(), labels = c("AI", "human"))
+sadness_treatment_plot + scale_fill_discrete(name = element_blank(), labels = c("AI", "human"))+ theme(plot.title = element_text(hjust = 0.5, size = 20), legend.text  = element_text(size = 25), axis.title  = element_text(size = 25), axis.text  = element_text(size = 20))
 
 
 t.test(ai_sadness_treatment_data$sadness, human_sadness_treatment_data$sadness) # AI sadness mean = 3.56; Human sadness mean = 3.44. Almost same.
@@ -161,7 +175,7 @@ excitement_treatment_plot_data = excitement_treatment_data %>% group_by(exciteme
 
 excitement_treatment_plot = ggplot() + geom_col(data = excitement_treatment_plot_data, aes(x = excitement, y=count, fill = `factor(human)`), position = "dodge2")
 excitement_treatment_plot = excitement_treatment_plot + ggtitle('Treatment 3 (Excitement) Scores Historgram') + theme(plot.title = element_text(hjust = 0.5))
-excitement_treatment_plot + scale_fill_discrete(name = element_blank(), labels = c("AI", "human"))
+excitement_treatment_plot + scale_fill_discrete(name = element_blank(), labels = c("AI", "human"))+ theme(plot.title = element_text(hjust = 0.5, size = 20), legend.text  = element_text(size = 25), axis.title  = element_text(size = 25), axis.text  = element_text(size = 20))
 
 
 
@@ -185,9 +199,16 @@ boxplot(human_data$naturalness, ai_data$naturalness)
 # To illustrate further - Calculate effect of human vs. ai on naturalness
 lm_naturalness = lm(naturalness ~ human, data=updated_data) 
 summary(lm_naturalness)
+confint(lm_naturalness)
 plot_model(lm_naturalness)
 plot(updated_data$human, updated_data$naturalness)
 abline(lm_naturalness)
+
+
+lm_1 = lm(all_sadness_data$sadness ~ all_sadness_data$human)
+summary(lm_1)
+plot(all_sadness_data$human, all_sadness_data$sadness)
+abline(lm_1)
 # Coefficient = 1.74333 and p-value very low. i.e. human vs. AI generation has effect on perceived naturalness.
 # Therefore, H3 cannot be accepted with our current data. 
 
@@ -200,11 +221,21 @@ abline(lm_naturalness)
 ## lang moderation - english (controlling for lang_engr)
 lm_naturalness_lang_eng = lm(naturalness ~ human  * lang_eng, data=updated_data)
 summary(lm_naturalness_lang_eng)
+confint(lm_naturalness_lang_eng)
 plot(updated_data$human, updated_data$naturalness)
 abline(lm_naturalness)
 abline(lm_naturalness_lang_eng)
+plot_model(lm_naturalness_lang_eng)
 ### human:lang_eng coefficient = 0.259058 and human coefficient = 0.822769 (reduced from 1.74333 from lm_naturalness above) and p-value is very low. 
 ### That means, lang_eng moderates perceived naturalness. 
+
+#CONFIDENCE INTERVALS WITH PREDICTION... INTERESTING.
+new.dat = data.frame(human=0, lang_eng=5)
+predict(lm_naturalness_lang_eng, newdata = new.dat, interval = 'confidence')
+confint(lm_naturalness_lang_eng)
+
+new.dat.h = data.frame(human=1, lang_eng=5)
+predict(lm_naturalness_lang_eng, newdata = new.dat.h, interval = 'confidence')
 
 ## lang moderation - other (controlling for lang_other)
 lm_naturalness_lang_other = lm(naturalness ~ human  * lang_other, data=updated_data)
@@ -271,5 +302,9 @@ print_summary_stats(sadness_treatment_data$sadness)
 print_summary_stats(sadness_treatment_data$secondary_emotion_residual)
 t.test(sadness_treatment_data$sadness, sadness_treatment_data$secondary_emotion_residual, alternative = 'greater')
 
+summary(lm(sadness_treatment_data$sadness ~ sadness_treatment_data$secondary_emotion_residual))
+summary(lm(anger_treatment_data$anger ~ anger_treatment_data$secondary_emotion_residual))
+summary(lm(excitement_treatment_data$excitement ~ excitement_treatment_data$secondary_emotion_residual))
 
+View(updated_data)
 
