@@ -2,4 +2,4 @@
 
 Notes, code and handouts from Prof. Subhayan's class. 
 
-Added here to assist me in switching between laptops ¯\__(ツ)__/¯
+Added here to assist me in switching between laptops ¯\\_(ツ)_/¯
